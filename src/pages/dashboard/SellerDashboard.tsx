@@ -65,7 +65,20 @@ const SellerDashboard = () => {
     }
   ];
 
-  const products = [
+  const [showEditProduct, setShowEditProduct] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [showOrderDetail, setShowOrderDetail] = useState(false);
+  const [selectedOrderDetail, setSelectedOrderDetail] = useState(null);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [profile, setProfile] = useState({
+    name: 'Bu Sari',
+    email: 'sari@kantin.smk13.edu',
+    phone: '081234567890',
+    canteen: 'Kantin Bu Sari',
+    address: 'SMK 13 Bandung'
+  });
+  const [products, setProducts] = useState([
     {
       id: 1,
       name: 'Nasi Gudeg Special',
@@ -90,7 +103,69 @@ const SellerDashboard = () => {
       stock: 30,
       sold: 80
     }
-  ];
+  ]);
+
+  const handleEditProduct = (product: any) => {
+    setSelectedProduct(product);
+    setNewProduct({
+      name: product.name,
+      price: product.price.toString(),
+      category: product.category,
+      description: ''
+    });
+    setShowEditProduct(true);
+  };
+
+  const handleDeleteProduct = (product: any) => {
+    setSelectedProduct(product);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteProduct = () => {
+    if (selectedProduct) {
+      setProducts(products.filter(p => p.id !== selectedProduct.id));
+      showToast({
+        type: 'success',
+        title: 'Produk Dihapus',
+        description: `${selectedProduct.name} berhasil dihapus`
+      });
+    }
+    setShowDeleteConfirm(false);
+    setSelectedProduct(null);
+  };
+
+  const handleViewOrderDetail = (order: any) => {
+    setSelectedOrderDetail(order);
+    setShowOrderDetail(true);
+  };
+
+  const handleUpdateProduct = () => {
+    if (selectedProduct) {
+      setProducts(products.map(p => 
+        p.id === selectedProduct.id 
+          ? {...p, name: newProduct.name, price: parseInt(newProduct.price), category: newProduct.category}
+          : p
+      ));
+      showToast({
+        type: 'success',
+        title: 'Produk Diperbarui',
+        description: `${newProduct.name} berhasil diperbarui`
+      });
+    }
+    setShowEditProduct(false);
+    setSelectedProduct(null);
+    setNewProduct({ name: '', price: '', category: '', description: '' });
+  };
+
+  const handleEditProfile = (updatedProfile: any) => {
+    setProfile(updatedProfile);
+    setShowEditProfile(false);
+    showToast({
+      type: 'success',
+      title: 'Profil Diperbarui',
+      description: 'Data profil berhasil diperbarui'
+    });
+  };
 
   const handleOrderAction = (orderId: string, action: 'accept' | 'reject' | 'complete') => {
     const actionText = {
@@ -179,7 +254,7 @@ const SellerDashboard = () => {
         </header>
 
         {/* Orders List */}
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
           {orders.map((order) => (
             <Card key={order.id} className="p-4">
               <div className="flex justify-between items-start mb-3">
@@ -232,7 +307,7 @@ const SellerDashboard = () => {
               )}
 
               {order.status === 'completed' && (
-                <Button size="sm" variant="outline" className="w-full">
+                <Button size="sm" variant="outline" className="w-full" onClick={() => handleViewOrderDetail(order)}>
                   <Eye className="w-4 h-4 mr-1" />
                   Lihat Detail
                 </Button>
@@ -343,7 +418,7 @@ const SellerDashboard = () => {
         </header>
 
         {/* Products List */}
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
           {products.map((product) => (
             <Card key={product.id} className="p-4">
               <div className="flex justify-between items-start">
@@ -363,10 +438,10 @@ const SellerDashboard = () => {
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <Button variant="outline" size="icon">
+                  <Button variant="outline" size="icon" onClick={() => handleEditProduct(product)}>
                     <Edit className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" size="icon">
+                  <Button variant="outline" size="icon" onClick={() => handleDeleteProduct(product)}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -832,6 +907,167 @@ const SellerDashboard = () => {
           >
             Tandai Semua Dibaca
           </Button>
+        </div>
+      </Modal>
+
+      {/* Edit Product Modal */}
+      <Modal
+        isOpen={showEditProduct}
+        onClose={() => setShowEditProduct(false)}
+        title="Edit Produk"
+      >
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="editProductName">Nama Produk</Label>
+            <Input
+              id="editProductName"
+              placeholder="Masukkan nama produk"
+              value={newProduct.name}
+              onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+            />
+          </div>
+          <div>
+            <Label htmlFor="editProductPrice">Harga</Label>
+            <Input
+              id="editProductPrice"
+              type="number"
+              placeholder="Masukkan harga"
+              value={newProduct.price}
+              onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
+            />
+          </div>
+          <div>
+            <Label htmlFor="editProductCategory">Kategori</Label>
+            <Input
+              id="editProductCategory"
+              placeholder="Makanan Berat / Snack / Minuman"
+              value={newProduct.category}
+              onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
+            />
+          </div>
+          <div className="flex space-x-3">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setShowEditProduct(false);
+                setSelectedProduct(null);
+                setNewProduct({ name: '', price: '', category: '', description: '' });
+              }}
+            >
+              Batal
+            </Button>
+            <Button className="flex-1 btn-ripple" onClick={handleUpdateProduct}>
+              Update Produk
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        title="Hapus Produk"
+      >
+        <div className="space-y-4">
+          <p>Apakah Anda yakin ingin menghapus produk <strong>{selectedProduct?.name}</strong>?</p>
+          <div className="flex space-x-3">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setShowDeleteConfirm(false)}
+            >
+              Batal
+            </Button>
+            <Button
+              variant="destructive"
+              className="flex-1"
+              onClick={confirmDeleteProduct}
+            >
+              Hapus
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Order Detail Modal */}
+      <Modal isOpen={showOrderDetail} onClose={() => setShowOrderDetail(false)} title="Detail Pesanan">
+        {selectedOrderDetail && (
+          <div className="space-y-4">
+            <div className="border-b pb-3">
+              <h3 className="font-semibold">{selectedOrderDetail.id}</h3>
+              <p className="text-sm text-muted-foreground">{selectedOrderDetail.customerName} • {selectedOrderDetail.class}</p>
+              <p className="text-sm text-muted-foreground">{selectedOrderDetail.time}</p>
+              <Badge className={
+                selectedOrderDetail.status === 'completed' ? 'bg-green-100 text-green-700' :
+                selectedOrderDetail.status === 'processing' ? 'bg-blue-100 text-blue-700' :
+                'bg-yellow-100 text-yellow-700'
+              }>
+                {selectedOrderDetail.status === 'completed' ? 'Selesai' : 
+                 selectedOrderDetail.status === 'processing' ? 'Diproses' : 'Menunggu'}
+              </Badge>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">Items:</h4>
+              <div className="text-sm text-muted-foreground mb-2">
+                {selectedOrderDetail.items}
+              </div>
+            </div>
+            <div className="border-t pt-3">
+              <div className="flex justify-between font-bold">
+                <span>Total:</span>
+                <span className="text-primary">Rp {selectedOrderDetail.total.toLocaleString('id-ID')}</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Edit Profile Modal */}
+      <Modal isOpen={showEditProfile} onClose={() => setShowEditProfile(false)} title="Edit Profil">
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="profileName">Nama Lengkap</Label>
+            <Input
+              id="profileName"
+              defaultValue={profile.name}
+              onChange={(e) => setProfile({...profile, name: e.target.value})}
+            />
+          </div>
+          <div>
+            <Label htmlFor="profileEmail">Email</Label>
+            <Input
+              id="profileEmail"
+              type="email"
+              defaultValue={profile.email}
+              onChange={(e) => setProfile({...profile, email: e.target.value})}
+            />
+          </div>
+          <div>
+            <Label htmlFor="profilePhone">No. Telepon</Label>
+            <Input
+              id="profilePhone"
+              defaultValue={profile.phone}
+              onChange={(e) => setProfile({...profile, phone: e.target.value})}
+            />
+          </div>
+          <div>
+            <Label htmlFor="profileCanteen">Nama Kantin</Label>
+            <Input
+              id="profileCanteen"
+              defaultValue={profile.canteen}
+              onChange={(e) => setProfile({...profile, canteen: e.target.value})}
+            />
+          </div>
+          <div className="flex space-x-3">
+            <Button variant="outline" className="flex-1" onClick={() => setShowEditProfile(false)}>
+              Batal
+            </Button>
+            <Button className="flex-1" onClick={() => handleEditProfile(profile)}>
+              Simpan
+            </Button>
+          </div>
         </div>
       </Modal>
     </div>

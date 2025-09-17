@@ -12,6 +12,7 @@ import {
   CreditCard, Award, Gift, MessageCircle, Wallet
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Label } from '@/components/ui/label';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -23,6 +24,19 @@ const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [showProfile, setShowProfile] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showSchoolSelector, setShowSchoolSelector] = useState(false);
+  const [showOrderDetail, setShowOrderDetail] = useState(false);
+  const [selectedOrderDetail, setSelectedOrderDetail] = useState(null);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showPaymentMethods, setShowPaymentMethods] = useState(false);
+  const [showAddresses, setShowAddresses] = useState(false);
+  const [showSupport, setShowSupport] = useState(false);
+  const [profile, setProfile] = useState({
+    name: 'Ahmad Siswa',
+    email: 'ahmad@smk13.edu',
+    class: 'XII RPL 1',
+    phone: '081234567890'
+  });
   const [notifications, setNotifications] = useState([
     { id: 1, title: 'Pesanan Diterima', message: 'Pesanan Anda #ORD001 telah diterima penjual', time: '2 menit lalu', read: false },
     { id: 2, title: 'Promo Spesial', message: 'Diskon 20% untuk semua minuman hari ini!', time: '1 jam lalu', read: false },
@@ -30,10 +44,47 @@ const StudentDashboard = () => {
   ]);
   const [favorites, setFavorites] = useState([1, 3]);
   const [orders, setOrders] = useState([
-    { id: 'ORD001', items: '2x Nasi Gudeg, 1x Es Teh', total: 33000, status: 'Selesai', date: '15/01/2024', time: '10:30' },
-    { id: 'ORD002', items: '1x Ayam Geprek', total: 12000, status: 'Diantar', date: '15/01/2024', time: '11:15' },
-    { id: 'ORD003', items: '3x Keripik Singkong', total: 15000, status: 'Diproses', date: '15/01/2024', time: '11:45' }
+    { id: 'ORD001', items: [{ name: 'Nasi Gudeg', quantity: 2, price: 15000 }, { name: 'Es Teh', quantity: 1, price: 3000 }], total: 33000, status: 'Selesai', date: '15/01/2024', time: '10:30', seller: 'Kantin Bu Sari' },
+    { id: 'ORD002', items: [{ name: 'Ayam Geprek', quantity: 1, price: 12000 }], total: 12000, status: 'Diantar', date: '15/01/2024', time: '11:15', seller: 'Kantin Pak Budi' },
+    { id: 'ORD003', items: [{ name: 'Keripik Singkong', quantity: 3, price: 5000 }], total: 15000, status: 'Diproses', date: '15/01/2024', time: '11:45', seller: 'Kantin Bu Ani' }
   ]);
+
+  const schools = [
+    { id: 1, name: 'SMK 13 BANDUNG' },
+    { id: 2, name: 'SMA 5 Jakarta' },
+    { id: 3, name: 'SMP 2 Bandung' }
+  ];
+
+  const handleViewOrderDetail = (order: any) => {
+    setSelectedOrderDetail(order);
+    setShowOrderDetail(true);
+  };
+
+  const handleReorder = (order: any) => {
+    order.items.forEach((item: any) => {
+      const food = foods.find(f => f.name === item.name);
+      if (food) {
+        for (let i = 0; i < item.quantity; i++) {
+          handleAddToCart(food);
+        }
+      }
+    });
+    showToast({
+      type: 'success',
+      title: 'Berhasil Ditambahkan',
+      description: 'Item pesanan telah ditambahkan ke keranjang'
+    });
+  };
+
+  const handleEditProfile = (updatedProfile: any) => {
+    setProfile(updatedProfile);
+    setShowEditProfile(false);
+    showToast({
+      type: 'success',
+      title: 'Profil Diperbarui',
+      description: 'Data profil berhasil diperbarui'
+    });
+  };
 
   const categories = [
     { id: 'all', name: 'Semua' },
@@ -111,13 +162,14 @@ const StudentDashboard = () => {
         </header>
 
         {/* Orders List */}
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
           {orders.map((order) => (
             <Card key={order.id} className="p-4">
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <h3 className="font-semibold">{order.id}</h3>
                   <p className="text-sm text-muted-foreground">{order.date}, {order.time}</p>
+                  <p className="text-sm text-muted-foreground">{order.seller}</p>
                 </div>
                 <Badge className={
                   order.status === 'Selesai' ? 'bg-green-100 text-green-700' :
@@ -129,16 +181,16 @@ const StudentDashboard = () => {
                 </Badge>
               </div>
               <div className="text-sm text-muted-foreground mb-2">
-                {order.items}
+                {order.items.map((item: any) => `${item.quantity}x ${item.name}`).join(', ')}
               </div>
               <div className="flex justify-between items-center">
                 <span className="font-semibold">Total: Rp {order.total.toLocaleString('id-ID')}</span>
                 <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => handleViewOrderDetail(order)}>
                     Lihat Detail
                   </Button>
                   {order.status === 'Selesai' && (
-                    <Button size="sm">
+                    <Button size="sm" onClick={() => handleReorder(order)}>
                       Pesan Lagi
                     </Button>
                   )}
@@ -187,7 +239,7 @@ const StudentDashboard = () => {
         </header>
 
         {/* Favorites List */}
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
           {foods.filter(food => favorites.includes(food.id)).map(food => (
             <Card key={food.id} className="p-4">
               <div className="flex justify-between items-start">
@@ -275,12 +327,12 @@ const StudentDashboard = () => {
                 <User className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg">Ahmad Siswa</h3>
-                <p className="text-muted-foreground">ahmad@smk13.edu</p>
-                <p className="text-sm text-muted-foreground">Kelas XII RPL 1</p>
+                <h3 className="font-semibold text-lg">{profile.name}</h3>
+                <p className="text-muted-foreground">{profile.email}</p>
+                <p className="text-sm text-muted-foreground">Kelas {profile.class}</p>
               </div>
             </div>
-            <Button variant="outline" className="w-full mt-4">
+            <Button variant="outline" className="w-full mt-4" onClick={() => setShowEditProfile(true)}>
               Edit Profil
             </Button>
           </Card>
@@ -318,7 +370,7 @@ const StudentDashboard = () => {
                   <CreditCard className="w-5 h-5 text-muted-foreground" />
                   <span>Metode Pembayaran</span>
                 </div>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" onClick={() => setShowPaymentMethods(true)}>
                   <ChevronDown className="w-4 h-4" />
                 </Button>
               </div>
@@ -330,7 +382,7 @@ const StudentDashboard = () => {
                   <MapPin className="w-5 h-5 text-muted-foreground" />
                   <span>Alamat Pengiriman</span>
                 </div>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" onClick={() => setShowAddresses(true)}>
                   <ChevronDown className="w-4 h-4" />
                 </Button>
               </div>
@@ -362,7 +414,7 @@ const StudentDashboard = () => {
                   <MessageCircle className="w-5 h-5 text-muted-foreground" />
                   <span>Bantuan & Support</span>
                 </div>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" onClick={() => setShowSupport(true)}>
                   <ChevronDown className="w-4 h-4" />
                 </Button>
               </div>
@@ -413,7 +465,7 @@ const StudentDashboard = () => {
         <div className="px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <Button variant="outline" size="sm" className="flex items-center space-x-2">
+              <Button variant="outline" size="sm" className="flex items-center space-x-2" onClick={() => setShowSchoolSelector(true)}>
                 <span className="text-sm font-medium">{selectedSchool}</span>
                 <ChevronDown className="w-4 h-4" />
               </Button>
@@ -609,6 +661,175 @@ const StudentDashboard = () => {
           >
             Tandai Semua Dibaca
           </Button>
+        </div>
+      </Modal>
+
+      {/* School Selector Modal */}
+      <Modal isOpen={showSchoolSelector} onClose={() => setShowSchoolSelector(false)} title="Pilih Sekolah">
+        <div className="space-y-3">
+          {schools.map((school) => (
+            <Button
+              key={school.id}
+              variant={selectedSchool === school.name ? "default" : "outline"}
+              className="w-full justify-start"
+              onClick={() => {
+                setSelectedSchool(school.name);
+                setShowSchoolSelector(false);
+                showToast({
+                  type: 'success',
+                  title: 'Sekolah Dipilih',
+                  description: `Berganti ke ${school.name}`
+                });
+              }}
+            >
+              {school.name}
+            </Button>
+          ))}
+        </div>
+      </Modal>
+
+      {/* Order Detail Modal */}
+      <Modal isOpen={showOrderDetail} onClose={() => setShowOrderDetail(false)} title="Detail Pesanan">
+        {selectedOrderDetail && (
+          <div className="space-y-4">
+            <div className="border-b pb-3">
+              <h3 className="font-semibold">{selectedOrderDetail.id}</h3>
+              <p className="text-sm text-muted-foreground">{selectedOrderDetail.date}, {selectedOrderDetail.time}</p>
+              <p className="text-sm text-muted-foreground">{selectedOrderDetail.seller}</p>
+              <Badge className={
+                selectedOrderDetail.status === 'Selesai' ? 'bg-green-100 text-green-700' :
+                selectedOrderDetail.status === 'Diantar' ? 'bg-blue-100 text-blue-700' :
+                'bg-yellow-100 text-yellow-700'
+              }>
+                {selectedOrderDetail.status}
+              </Badge>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">Items:</h4>
+              {selectedOrderDetail.items.map((item: any, index: number) => (
+                <div key={index} className="flex justify-between py-2 border-b">
+                  <div>
+                    <span className="font-medium">{item.name}</span>
+                    <span className="text-muted-foreground"> x{item.quantity}</span>
+                  </div>
+                  <span>Rp {(item.price * item.quantity).toLocaleString('id-ID')}</span>
+                </div>
+              ))}
+            </div>
+            <div className="border-t pt-3">
+              <div className="flex justify-between font-bold">
+                <span>Total:</span>
+                <span className="text-primary">Rp {selectedOrderDetail.total.toLocaleString('id-ID')}</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Edit Profile Modal */}
+      <Modal isOpen={showEditProfile} onClose={() => setShowEditProfile(false)} title="Edit Profil">
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="name">Nama Lengkap</Label>
+            <Input
+              id="name"
+              defaultValue={profile.name}
+              onChange={(e) => setProfile({...profile, name: e.target.value})}
+            />
+          </div>
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              defaultValue={profile.email}
+              onChange={(e) => setProfile({...profile, email: e.target.value})}
+            />
+          </div>
+          <div>
+            <Label htmlFor="class">Kelas</Label>
+            <Input
+              id="class"
+              defaultValue={profile.class}
+              onChange={(e) => setProfile({...profile, class: e.target.value})}
+            />
+          </div>
+          <div>
+            <Label htmlFor="phone">No. Telepon</Label>
+            <Input
+              id="phone"
+              defaultValue={profile.phone}
+              onChange={(e) => setProfile({...profile, phone: e.target.value})}
+            />
+          </div>
+          <div className="flex space-x-3">
+            <Button variant="outline" className="flex-1" onClick={() => setShowEditProfile(false)}>
+              Batal
+            </Button>
+            <Button className="flex-1" onClick={() => handleEditProfile(profile)}>
+              Simpan
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Payment Methods Modal */}
+      <Modal isOpen={showPaymentMethods} onClose={() => setShowPaymentMethods(false)} title="Metode Pembayaran">
+        <div className="space-y-3">
+          <Card className="p-3">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <CreditCard className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="font-medium">GoTripPay</p>
+                <p className="text-sm text-muted-foreground">Saldo: Rp 45.000</p>
+              </div>
+            </div>
+          </Card>
+          <Button variant="outline" className="w-full">
+            + Tambah Metode Pembayaran
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Addresses Modal */}
+      <Modal isOpen={showAddresses} onClose={() => setShowAddresses(false)} title="Alamat Pengiriman">
+        <div className="space-y-3">
+          <Card className="p-3">
+            <div className="flex items-center space-x-3">
+              <MapPin className="w-5 h-5 text-primary" />
+              <div>
+                <p className="font-medium">Kelas XII RPL 1</p>
+                <p className="text-sm text-muted-foreground">SMK 13 Bandung, Jl. Raya Bandung No. 123</p>
+              </div>
+            </div>
+          </Card>
+          <Button variant="outline" className="w-full">
+            + Tambah Alamat Baru
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Support Modal */}
+      <Modal isOpen={showSupport} onClose={() => setShowSupport(false)} title="Bantuan & Support">
+        <div className="space-y-4">
+          <Card className="p-4">
+            <h4 className="font-medium mb-2">FAQ</h4>
+            <div className="space-y-2 text-sm">
+              <p>• Bagaimana cara memesan makanan?</p>
+              <p>• Bagaimana cara mengisi saldo GoTripPay?</p>
+              <p>• Bagaimana cara melacak pesanan?</p>
+            </div>
+          </Card>
+          <Card className="p-4">
+            <h4 className="font-medium mb-2">Hubungi Kami</h4>
+            <div className="space-y-2 text-sm">
+              <p>📧 support@gotrip.com</p>
+              <p>📞 0800-1234-5678</p>
+              <p>💬 Live Chat (09:00-17:00)</p>
+            </div>
+          </Card>
         </div>
       </Modal>
 

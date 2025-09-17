@@ -136,7 +136,7 @@ const AdminDashboard = () => {
         </header>
 
         {/* Users List */}
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
           {users.map((user) => (
             <Card key={user.id} className="p-4">
               <div className="flex justify-between items-start">
@@ -208,7 +208,7 @@ const AdminDashboard = () => {
         </header>
 
         {/* Schools List */}
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 max-h-[calc(100vh-280px)] overflow-y-auto">
           {schools.map((school) => (
             <Card key={school.id} className="p-4">
               <div className="flex justify-between items-start">
@@ -327,7 +327,7 @@ const AdminDashboard = () => {
         </header>
 
         {/* Sellers List */}
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
           {sellers.map((seller) => (
             <Card key={seller.id} className="p-4">
               <div className="flex justify-between items-start">
@@ -393,7 +393,7 @@ const AdminDashboard = () => {
         </header>
 
         {/* Orders List */}
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
           {orders.map((order) => (
             <Card key={order.id} className="p-4">
               <div className="flex justify-between items-start">
