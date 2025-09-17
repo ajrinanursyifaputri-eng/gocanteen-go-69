@@ -200,6 +200,44 @@ const StudentDashboard = () => {
           ))}
         </div>
 
+        {/* Order Detail Modal */}
+        <Modal isOpen={showOrderDetail} onClose={() => setShowOrderDetail(false)} title="Detail Pesanan">
+          {selectedOrderDetail && (
+            <div className="space-y-4">
+              <div className="border-b pb-3">
+                <h3 className="font-semibold">{selectedOrderDetail.id}</h3>
+                <p className="text-sm text-muted-foreground">{selectedOrderDetail.date}, {selectedOrderDetail.time}</p>
+                <p className="text-sm text-muted-foreground">{selectedOrderDetail.seller}</p>
+                <Badge className={
+                  selectedOrderDetail.status === 'Selesai' ? 'bg-green-100 text-green-700' :
+                  selectedOrderDetail.status === 'Diantar' ? 'bg-blue-100 text-blue-700' :
+                  'bg-yellow-100 text-yellow-700'
+                }>
+                  {selectedOrderDetail.status}
+                </Badge>
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Items:</h4>
+                {selectedOrderDetail.items.map((item: any, index: number) => (
+                  <div key={index} className="flex justify-between py-2 border-b">
+                    <div>
+                      <span className="font-medium">{item.name}</span>
+                      <span className="text-muted-foreground"> x{item.quantity}</span>
+                    </div>
+                    <span>Rp {(item.price * item.quantity).toLocaleString('id-ID')}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t pt-3">
+                <div className="flex justify-between font-bold">
+                  <span>Total:</span>
+                  <span className="text-primary">Rp {selectedOrderDetail.total.toLocaleString('id-ID')}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </Modal>
+
         {/* Bottom Nav */}
         <div className="fixed bottom-0 left-0 right-0 bg-card border-t">
           <div className="flex items-center justify-around py-2">
@@ -429,6 +467,113 @@ const StudentDashboard = () => {
             </Button>
           </div>
         </div>
+
+        {/* Edit Profile Modal */}
+        <Modal isOpen={showEditProfile} onClose={() => setShowEditProfile(false)} title="Edit Profil">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name">Nama Lengkap</Label>
+              <Input
+                id="name"
+                defaultValue={profile.name}
+                onChange={(e) => setProfile({...profile, name: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                defaultValue={profile.email}
+                onChange={(e) => setProfile({...profile, email: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label htmlFor="class">Kelas</Label>
+              <Input
+                id="class"
+                defaultValue={profile.class}
+                onChange={(e) => setProfile({...profile, class: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label htmlFor="phone">No. Telepon</Label>
+              <Input
+                id="phone"
+                defaultValue={profile.phone}
+                onChange={(e) => setProfile({...profile, phone: e.target.value})}
+              />
+            </div>
+            <div className="flex space-x-3">
+              <Button variant="outline" className="flex-1" onClick={() => setShowEditProfile(false)}>
+                Batal
+              </Button>
+              <Button className="flex-1" onClick={() => handleEditProfile(profile)}>
+                Simpan
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Payment Methods Modal */}
+        <Modal isOpen={showPaymentMethods} onClose={() => setShowPaymentMethods(false)} title="Metode Pembayaran">
+          <div className="space-y-3">
+            <Card className="p-3">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-medium">GoTripPay</p>
+                  <p className="text-sm text-muted-foreground">Saldo: Rp 45.000</p>
+                </div>
+              </div>
+            </Card>
+            <Button variant="outline" className="w-full">
+              + Tambah Metode Pembayaran
+            </Button>
+          </div>
+        </Modal>
+
+        {/* Addresses Modal */}
+        <Modal isOpen={showAddresses} onClose={() => setShowAddresses(false)} title="Alamat Pengiriman">
+          <div className="space-y-3">
+            <Card className="p-3">
+              <div className="flex items-center space-x-3">
+                <MapPin className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="font-medium">Kelas XII RPL 1</p>
+                  <p className="text-sm text-muted-foreground">SMK 13 Bandung, Jl. Raya Bandung No. 123</p>
+                </div>
+              </div>
+            </Card>
+            <Button variant="outline" className="w-full">
+              + Tambah Alamat Baru
+            </Button>
+          </div>
+        </Modal>
+
+        {/* Support Modal */}
+        <Modal isOpen={showSupport} onClose={() => setShowSupport(false)} title="Bantuan & Support">
+          <div className="space-y-4">
+            <Card className="p-4">
+              <h4 className="font-medium mb-2">FAQ</h4>
+              <div className="space-y-2 text-sm">
+                <p>• Bagaimana cara memesan makanan?</p>
+                <p>• Bagaimana cara mengisi saldo GoTripPay?</p>
+                <p>• Bagaimana cara melacak pesanan?</p>
+              </div>
+            </Card>
+            <Card className="p-4">
+              <h4 className="font-medium mb-2">Hubungi Kami</h4>
+              <div className="space-y-2 text-sm">
+                <p>📧 support@gotrip.com</p>
+                <p>📞 0800-1234-5678</p>
+                <p>💬 Live Chat (09:00-17:00)</p>
+              </div>
+            </Card>
+          </div>
+        </Modal>
 
         {/* Bottom Nav */}
         <div className="fixed bottom-0 left-0 right-0 bg-card border-t">

@@ -316,6 +316,39 @@ const SellerDashboard = () => {
           ))}
         </div>
 
+        {/* Order Detail Modal */}
+        <Modal isOpen={showOrderDetail} onClose={() => setShowOrderDetail(false)} title="Detail Pesanan">
+          {selectedOrderDetail && (
+            <div className="space-y-4">
+              <div className="border-b pb-3">
+                <h3 className="font-semibold">{selectedOrderDetail.id}</h3>
+                <p className="text-sm text-muted-foreground">{selectedOrderDetail.customerName} • {selectedOrderDetail.class}</p>
+                <p className="text-sm text-muted-foreground">{selectedOrderDetail.time}</p>
+                <Badge className={
+                  selectedOrderDetail.status === 'completed' ? 'bg-green-100 text-green-700' :
+                  selectedOrderDetail.status === 'processing' ? 'bg-blue-100 text-blue-700' :
+                  'bg-yellow-100 text-yellow-700'
+                }>
+                  {selectedOrderDetail.status === 'completed' ? 'Selesai' : 
+                   selectedOrderDetail.status === 'processing' ? 'Diproses' : 'Menunggu'}
+                </Badge>
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Items:</h4>
+                <div className="text-sm text-muted-foreground mb-2">
+                  {selectedOrderDetail.items}
+                </div>
+              </div>
+              <div className="border-t pt-3">
+                <div className="flex justify-between font-bold">
+                  <span>Total:</span>
+                  <span className="text-primary">Rp {selectedOrderDetail.total.toLocaleString('id-ID')}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </Modal>
+
         {/* Bottom Navigation */}
         <div className="fixed bottom-0 left-0 right-0 bg-card border-t">
           <div className="flex items-center justify-around py-2">
@@ -509,6 +542,127 @@ const SellerDashboard = () => {
           </div>
         </Modal>
 
+        {/* Edit Product Modal */}
+        <Modal
+          isOpen={showEditProduct}
+          onClose={() => setShowEditProduct(false)}
+          title="Edit Produk"
+        >
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="editProductName">Nama Produk</Label>
+              <Input
+                id="editProductName"
+                placeholder="Masukkan nama produk"
+                value={newProduct.name}
+                onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label htmlFor="editProductPrice">Harga</Label>
+              <Input
+                id="editProductPrice"
+                type="number"
+                placeholder="Masukkan harga"
+                value={newProduct.price}
+                onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label htmlFor="editProductCategory">Kategori</Label>
+              <Input
+                id="editProductCategory"
+                placeholder="Makanan Berat / Snack / Minuman"
+                value={newProduct.category}
+                onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
+              />
+            </div>
+            <div className="flex space-x-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setShowEditProduct(false);
+                  setSelectedProduct(null);
+                  setNewProduct({ name: '', price: '', category: '', description: '' });
+                }}
+              >
+                Batal
+              </Button>
+              <Button className="flex-1 btn-ripple" onClick={handleUpdateProduct}>
+                Update Produk
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          title="Hapus Produk"
+        >
+          <div className="space-y-4">
+            <p>Apakah Anda yakin ingin menghapus produk <strong>{selectedProduct?.name}</strong>?</p>
+            <div className="flex space-x-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                onClick={confirmDeleteProduct}
+              >
+                Hapus
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Notifications Modal */}
+        <Modal isOpen={showNotifications} onClose={() => setShowNotifications(false)} title="Notifikasi">
+          <div className="space-y-4">
+            {notifications.map((notif) => (
+              <div key={notif.id} className={`p-3 rounded-lg border ${!notif.read ? 'bg-primary/5 border-primary/20' : 'bg-muted/30'}`}>
+                <div className="flex justify-between items-start mb-1">
+                  <h4 className="font-medium text-sm">{notif.title}</h4>
+                  <span className="text-xs text-muted-foreground">{notif.time}</span>
+                </div>
+                <p className="text-sm text-muted-foreground">{notif.message}</p>
+                {!notif.read && (
+                  <div className="flex justify-end mt-2">
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => {
+                        setNotifications(notifications.map(n => 
+                          n.id === notif.id ? {...n, read: true} : n
+                        ));
+                      }}
+                    >
+                      Tandai Dibaca
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => {
+                setNotifications(notifications.map(n => ({...n, read: true})));
+                showToast({ type: 'success', title: 'Semua notifikasi ditandai sebagai dibaca', description: '' });
+              }}
+            >
+              Tandai Semua Dibaca
+            </Button>
+          </div>
+        </Modal>
+
         {/* Bottom Navigation */}
         <div className="fixed bottom-0 left-0 right-0 bg-card border-t">
           <div className="flex items-center justify-around py-2">
@@ -664,6 +818,46 @@ const SellerDashboard = () => {
           </Card>
         </div>
 
+        {/* Notifications Modal */}
+        <Modal isOpen={showNotifications} onClose={() => setShowNotifications(false)} title="Notifikasi">
+          <div className="space-y-4">
+            {notifications.map((notif) => (
+              <div key={notif.id} className={`p-3 rounded-lg border ${!notif.read ? 'bg-primary/5 border-primary/20' : 'bg-muted/30'}`}>
+                <div className="flex justify-between items-start mb-1">
+                  <h4 className="font-medium text-sm">{notif.title}</h4>
+                  <span className="text-xs text-muted-foreground">{notif.time}</span>
+                </div>
+                <p className="text-sm text-muted-foreground">{notif.message}</p>
+                {!notif.read && (
+                  <div className="flex justify-end mt-2">
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => {
+                        setNotifications(notifications.map(n => 
+                          n.id === notif.id ? {...n, read: true} : n
+                        ));
+                      }}
+                    >
+                      Tandai Dibaca
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => {
+                setNotifications(notifications.map(n => ({...n, read: true})));
+                showToast({ type: 'success', title: 'Semua notifikasi ditandai sebagai dibaca', description: '' });
+              }}
+            >
+              Tandai Semua Dibaca
+            </Button>
+          </div>
+        </Modal>
+
         {/* Bottom Navigation */}
         <div className="fixed bottom-0 left-0 right-0 bg-card border-t">
           <div className="flex items-center justify-around py-2">
@@ -729,7 +923,7 @@ const SellerDashboard = () => {
               <p className="text-sm text-muted-foreground">Penjual • SMK 13 Bandung</p>
             </div>
           </div>
-          <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full" onClick={() => setShowEditProfile(true)}>
             Edit Profil
           </Button>
         </Card>
